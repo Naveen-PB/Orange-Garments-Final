@@ -2,19 +2,41 @@ const cartModel = require("../../model/Cart");
 
 const CartController = async (req, res) => {
   try {
-    const { productId } = req?.body;
+    const { productId, quantity = 1 } = req?.body;
     const currentUser = req?.userId;
+
+    if (!currentUser) {
+      return res.status(401).json({
+        message: "Please login to add products to your cart",
+        error: true,
+        success: false,
+      });
+    }
+
+    if (!productId) {
+      return res.status(400).json({
+        message: "Product ID is required",
+        error: true,
+        success: false,
+      });
+    }
 
     // Check if product is already in the cart
     const isProdAvailable = await cartModel.findOne({ productId, userId: currentUser });
     if (isProdAvailable) {
-      throw new Error("Product already exists in your cart")
+      isProdAvailable.quantity += (Number(quantity) || 1);
+      const updated = await isProdAvailable.save();
+      return res.status(200).json({
+        data: updated,
+        message: "Product quantity updated in cart.",
+        error: false,
+        success: true,
+      });
     }
 
-    // Create new cart entry
     const payload = {
       productId: productId,
-      quantity: 1,
+      quantity: Number(quantity) || 1,
       userId: currentUser
     };
 
@@ -23,7 +45,7 @@ const CartController = async (req, res) => {
 
     res.status(201).json({
       data: saveProduct,
-      message: "Product added successfully.",
+      message: "Product added to cart successfully.",
       error: false,
       success: true,
     });

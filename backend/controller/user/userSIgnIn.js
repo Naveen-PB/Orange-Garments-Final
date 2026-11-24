@@ -1,65 +1,71 @@
-const bcrypt = require('bcrypt')
-const userModel = require('../../model/userModel')
-const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs');
+const userModel = require('../../model/userModel');
+const jwt = require('jsonwebtoken');
 
-const userSignInController = async (req, res) =>{
-
+const userSignInController = async (req, res) => {
   try {
+    const { email, password } = req.body;
 
-    const {email, password} = req.body
-
-    if(!email){
-      throw new Error("Please enter email..!")
+    if (!email) {
+      return res.status(400).json({ success: false, error: true, message: "Please enter email!" });
+    }
+    if (!password) {
+      return res.status(400).json({ success: false, error: true, message: "Please enter password!" });
     }
 
-    if(!password){
-      throw new Error("Please enter password..!")
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await userModel.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: true, message: "User not found with this email!" });
     }
 
+    const checkPassword = await bcrypt.compare(password, user.password);
 
-    const user = await userModel.findOne({email})
-
-    if(!user){
-      throw new Error("No user exist with this email..!")
+    if (!checkPassword) {
+      return res.status(400).json({ success: false, error: true, message: "Incorrect password. Please try again!" });
     }
 
-    const checkPassword = await bcrypt.compare(password, user.password)
+    const tokenData = {
+      _id: user._id,
+      email: user.email,
+      role: user.role
+    };
 
-    // console.log("Check Password", checkPassword)
+    const token = jwt.sign(tokenData, process.env.TOKEN_SECRET_KEY || 'default_secret_key_orange_garments', { expiresIn: '7d' });
 
-    if(checkPassword){
+    const isProduction = process.env.NODE_ENV === 'production';
+    const tokenOption = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'None' : 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    };
 
-      const tokenData = {
-        _id : user._id,
-        email : user.email,
-      }
+    const userProfile = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      contact: user.contact,
+      role: user.role,
+      profilepic: user.profilepic,
+    };
 
-      const token = await jwt.sign(tokenData, process.env.TOKEN_SECRET_KEY, { expiresIn: 60 * 60 * 12 })
-      const tokenOption = {
-        httpOnly : true,
-        secure : true,
-        sameSite : 'None'
-      }
+    res.cookie("token", token, tokenOption).status(200).json({
+      message: "Sign in successful!",
+      data: token,
+      user: userProfile,
+      success: true,
+      error: false,
+    });
 
-      res.cookie("token", token, tokenOption).status(200).json({
-        message : "Sign in successfull..!",
-        data : token,
-        success : true,
-        error : false,
-      })
-
-    }else{
-      throw new Error("Please enter correct password..!")
-    }
-
-    
   } catch (error) {
-    res.json({
-      message : error.message || error,
-      error : true,
-      success : false,
-    })
+    res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
   }
-}
+};
 
-module.exports = userSignInController
+module.exports = userSignInController;

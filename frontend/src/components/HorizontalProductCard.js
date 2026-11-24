@@ -2,16 +2,15 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import fetchCategoryWiseProduct from "../helpers/fetchCategoryWiseProduct";
 import displayINR from "../helpers/displayCurrency";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAddToCart from "../helpers/AddToCart";
-import { FaHeart } from "react-icons/fa";
-import { FaRegHeart } from "react-icons/fa";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import SummaryApi from "../common/API";
-import { toast } from "react-toastify";
 import AddToWishList from "../helpers/AddToWishlist";
 import context from "../context/Context";
 import DeleteToWishList from "../helpers/DeleteWishListProduct";
+import { getProductImage, handleImageError } from "../helpers/productImageHelper";
 
 const HorizontalProductCard = ({ category, heading }) => {
   const user = useSelector((state) => state?.user?.user);
@@ -57,8 +56,7 @@ const HorizontalProductCard = ({ category, heading }) => {
     setLoading(true);
     try {
       const result = await fetchCategoryWiseProduct(category);
-      setData(result.product); // Ensure result.product is the correct path
-      // console.log(result);
+      setData(result.product || result.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
       setData([]);
@@ -156,14 +154,15 @@ const HorizontalProductCard = ({ category, heading }) => {
           : data.map((product, index) => {
               return (
                 <Link
-                  to={`product/${product?._id}`}
+                  to={`/product/${product?._id}`}
                   className="w-full min-w-[280px] md:min-w-[320px] max-w-[280px] md:max-w-[320px] h-36 bg-white rounded-sm shadow flex"
                   key={index}
                 >
-                  <div className="bg-slate-200 p-4 h-full min-w-[120px] md:min-w-[150px]">
+                  <div className="bg-slate-200 p-4 h-full min-w-[120px] md:min-w-[150px] flex items-center justify-center">
                     <img
-                      src={product.productImage[0]}
-                      className="object-scale-down h-full hover:scale-125 transition-all mix-blend-multiply"
+                      src={getProductImage(product, 0)}
+                      onError={(e) => handleImageError(e, product?.category)}
+                      className="object-scale-down h-full w-full hover:scale-125 transition-all mix-blend-multiply"
                       alt={product?.productName}
                     />
                   </div>

@@ -1,22 +1,31 @@
 const cartModel = require("../../model/Cart");
 
-const CountCartProductController = async(req, res)=>{
-
-
+const CountCartProductController = async (req, res) => {
   try {
+    const currentUser = req?.userId || req?.params?.id;
 
-    const currentUser = req?.userId
-    // console.log("User Id:",currentUser)
+    if (!currentUser) {
+      return res.status(200).json({
+        data: [],
+        count: 0,
+        message: "No user authenticated",
+        error: false,
+        success: true,
+      });
+    }
 
-    const cartdata = await cartModel.find({userId : currentUser}).populate("productId")
-    console.log(cartdata)
+    const rawCartData = await cartModel.find({ userId: currentUser }).populate("productId").sort({ createdAt: -1 });
+    
+    // Filter out items where referenced product was deleted
+    const cartdata = rawCartData.filter(item => item.productId != null);
 
     res.status(200).json({
-      data : cartdata,
-      message : "Cart Product List",
-      error : false,
-      success : true
-    })
+      data: cartdata,
+      count: cartdata.length,
+      message: "Cart Product List",
+      error: false,
+      success: true
+    });
     
   } catch (error) {
     res.status(500).json({
@@ -25,7 +34,6 @@ const CountCartProductController = async(req, res)=>{
       success: false,
     });
   }
+};
 
-}
-
-module.exports = CountCartProductController
+module.exports = CountCartProductController;

@@ -1,35 +1,38 @@
-const wishListModel = require("../../model/WishList")
+const wishListModel = require("../../model/WishList");
 
-
-const CountAddToWishListProductController = async(req, res) =>{
-
+const CountAddToWishListProductController = async (req, res) => {
   try {
+    const currentUser = req?.userId;
 
-    const currentUser = req?.userId
+    if (!currentUser) {
+      return res.status(200).json({
+        data: { count: 0 },
+        message: "No user authenticated",
+        error: false,
+        success: true
+      });
+    }
 
     const wishListProductCount = await wishListModel.countDocuments({
-      userId : currentUser
-    })
-
-
+      userId: currentUser
+    });
 
     res.status(200).json({
-      data : {
-        count : wishListProductCount
+      data: {
+        count: wishListProductCount
       },
-      message : "Added to WishList",
-      error : false,
-      success : true
-     })
-    
+      message: "Wishlist count",
+      error: false,
+      success: true
+    });
+
   } catch (error) {
-    res.status(400).json({
-      message : error.message || error,
-      error : true,
-      success : false
-     })
+    res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false
+    });
   }
+};
 
-}
-
-module.exports = CountAddToWishListProductController
+module.exports = CountAddToWishListProductController;

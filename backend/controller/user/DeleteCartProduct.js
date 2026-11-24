@@ -1,17 +1,26 @@
 const cartModel = require("../../model/Cart");
 
-const DeleteCartProductController = async(req, res) =>{
+const DeleteCartProductController = async (req, res) => {
   try {
+    const currentUser = req?.userId;
+    const cartProductId = req?.body?.cartProductId || req?.body?._id;
 
-    const currentUser = req?.userId
-    const cartProductId = req?.body?.cartProductId
+    if (!cartProductId) {
+      return res.status(400).json({
+        message: "Cart product ID is required",
+        error: true,
+        success: false,
+      });
+    }
 
-    const deletedProduct = await cartModel.findByIdAndDelete({_id:cartProductId})
+    const deletedProduct = await cartModel.findOneAndDelete({
+      _id: cartProductId,
+      userId: currentUser
+    });
 
-    console.log(deletedProduct)
     res.status(200).json({
-      data : deletedProduct,
-      message: "Product deleted from the cart",
+      data: deletedProduct,
+      message: "Product deleted from cart",
       error: false,
       success: true,
     });
@@ -22,6 +31,6 @@ const DeleteCartProductController = async(req, res) =>{
       success: false,
     });
   }
-}
+};
 
-module.exports = DeleteCartProductController
+module.exports = DeleteCartProductController;

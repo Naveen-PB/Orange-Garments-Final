@@ -1,10 +1,12 @@
-
 const jwt = require('jsonwebtoken');
 
 const authToken = async (req, res, next) => {
   try {
-    const token = req.cookies?.token || req.headers['authorization'];
-    // console.log('Token:', token);
+    let token = req.cookies?.token || req.headers['authorization'];
+    if (token && typeof token === 'string' && token.startsWith('Bearer ')) {
+      token = token.slice(7).trim();
+    }
+
     if (!token) {
       return res.status(401).json({
         message: "Please log in to proceed.",
@@ -13,16 +15,17 @@ const authToken = async (req, res, next) => {
       });
     }
 
-    jwt.verify(token, process.env.TOKEN_SECRET_KEY, (error, decoded) => {
+    jwt.verify(token, process.env.TOKEN_SECRET_KEY || 'default_secret_key_orange_garments', (error, decoded) => {
       if (error) {
         return res.status(403).json({
-          message: "Please log in to proceed.",
+          message: "Session expired or invalid. Please log in again.",
           error: true,
           success: false
         });
       }
 
       req.userId = decoded?._id;
+      req.userRole = decoded?.role;
       next();
     });
 

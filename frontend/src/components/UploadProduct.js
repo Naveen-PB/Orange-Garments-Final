@@ -37,12 +37,12 @@ const UploadProduct = ({ onClose, fetchData}) => {
     // console.log("Image name", uploadProductImg);
     // console.log("file", file)
 
-    const uploadImageToCloudinary = await UploadImage(file);
+    const uploadedImageResult = await UploadImage(file);
 
     setproductData((prev) => {
       return {
         ...prev,
-        productImage: [...prev.productImage, uploadImageToCloudinary.url],
+        productImage: [...prev.productImage, uploadedImageResult.url],
       };
     });
 

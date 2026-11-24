@@ -2,19 +2,23 @@ import React, { useEffect, useState } from "react";
 import SummaryApi from "../common/API";
 import { useSelector } from "react-redux";
 import cartImg from "../assest/Images/Cart.webp";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { FaPlusCircle, FaMinusCircle } from "react-icons/fa";
 import displayINRCurrency from "../helpers/displayCurrency";
 import { MdDelete } from "react-icons/md";
 import { toast } from "react-toastify";
 import { loadStripe } from "@stripe/stripe-js";
+import { getProductImage, handleImageError } from "../helpers/productImageHelper";
 
 const Cart = () => {
   const user = useSelector((state) => state?.user?.user);
   const { cartCount, countCartProducts } = useCart();
   const [cartData, setCartData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const cartLoadingList = Array.from(
     { length: cartCount },
@@ -109,21 +113,37 @@ const Cart = () => {
   );
 
   const handlePayment = async () => {
-    const stripePromise = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
-    const response = await fetch(SummaryApi.checkout.url, {
-      method: SummaryApi.checkout.method,
-      credentials: "include",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        cartItems: cartData,
-      }),
-    });
+    if (cartData.length === 0) return;
+    setSubmitting(true);
+    try {
+      const response = await fetch(SummaryApi.checkout.url, {
+        method: SummaryApi.checkout.method,
+        credentials: "include",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          cartItems: cartData,
+          paymentMethod: paymentMethod,
+        }),
+      });
 
-    const apiData = await response.json();
-    if (apiData?.id) {
-      stripePromise.redirectToCheckout({ sessionId: apiData?.id });
+      const apiData = await response.json();
+      if (apiData?.id) {
+        const stripePromise = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+        stripePromise.redirectToCheckout({ sessionId: apiData?.id });
+      } else if (apiData?.directOrder || apiData?.success) {
+        toast.success(apiData.message || "Order placed successfully!");
+        countCartProducts();
+        navigate("/user-panel/my-orders");
+      } else {
+        toast.error(apiData.message || "Checkout failed");
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      toast.error("Checkout process encountered an error.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -162,10 +182,11 @@ const Cart = () => {
                 className="w-full bg-white shadow-md p-4 rounded-lg mb-4 flex"
                 key={product?._id}
               >
-                <div className="w-40 h-40 bg-gray-200 rounded overflow-hidden">
+                <div className="w-40 h-40 bg-gray-100 rounded overflow-hidden flex items-center justify-center p-2">
                   <img
-                    src={product?.productId?.productImage[0]}
-                    className="w-full h-full object-contain"
+                    src={getProductImage(product?.productId, 0)}
+                    onError={(e) => handleImageError(e, product?.productId?.category)}
+                    className="w-full h-full object-contain mix-blend-multiply"
                     alt={product?.productId?.productName}
                   />
                 </div>
@@ -219,22 +240,62 @@ const Cart = () => {
 
         {cartCount !== 0 && (
           <div className="w-full lg:w-1/4 bg-white shadow-lg rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-6">Order Summary</h2>
-            <div className="flex justify-between mb-4">
-              <p className="text-lg font-medium">Total Items:</p>
-              <p className="text-lg font-semibold">{totalQty}</p>
+            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+            <div className="flex justify-between mb-3 text-slate-700">
+              <p className="text-sm font-medium">Total Items:</p>
+              <p className="text-sm font-semibold">{totalQty}</p>
             </div>
-            <div className="flex justify-between mb-6">
-              <p className="text-lg font-medium">Total Price:</p>
-              <p className="text-lg font-semibold">
+            <div className="flex justify-between mb-4 text-slate-800">
+              <p className="text-base font-semibold">Total Price:</p>
+              <p className="text-lg font-bold text-red-600">
                 {displayINRCurrency(totalPrice)}
               </p>
             </div>
+
+            {/* Payment Method Selector */}
+            <div className="border-t border-slate-200 pt-4 mb-5">
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                Select Payment Method
+              </p>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-slate-50 transition text-sm">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="COD"
+                    checked={paymentMethod === "COD"}
+                    onChange={() => setPaymentMethod("COD")}
+                    className="text-blue-600"
+                  />
+                  <div>
+                    <p className="font-semibold text-xs text-slate-800">Cash on Delivery (COD)</p>
+                    <p className="text-[10px] text-slate-500">Pay when order is delivered</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-slate-50 transition text-sm">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="card"
+                    checked={paymentMethod === "card"}
+                    onChange={() => setPaymentMethod("card")}
+                    className="text-blue-600"
+                  />
+                  <div>
+                    <p className="font-semibold text-xs text-slate-800">Card / Online Payment</p>
+                    <p className="text-[10px] text-slate-500">Credit / Debit Card via Stripe</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             <button
-              className="w-full bg-blue-600 text-white text-lg font-semibold py-3 rounded-lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-base font-semibold py-3 rounded-lg shadow transition disabled:opacity-50"
+              disabled={submitting}
               onClick={handlePayment}
             >
-              Proceed to Checkout
+              {submitting ? "Placing Order in Atlas..." : "Place Order Now"}
             </button>
           </div>
         )}

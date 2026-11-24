@@ -6,37 +6,44 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_END_POINTS_SECRET;
 
 const webHooks = async (req, res) => {
   const sig = req.headers["stripe-signature"];
-  console.log("Endpoints Secret: ",endpointSecret)
   const payloadString = JSON.stringify(req.body);
-  const header = stripe.webhooks.generateTestHeaderString({
-    payload: payloadString,
-    secret: endpointSecret,
-  });
+  
   let event;
   try {
-    event = stripe.webhooks.constructEvent(
-      payloadString,
-      header,
-      endpointSecret
-    );
+    if (endpointSecret && sig) {
+      event = stripe.webhooks.constructEvent(payloadString, sig, endpointSecret);
+    } else {
+      event = req.body;
+    }
   } catch (err) {
-    response.status(400).send(`Webhook Error: ${err.message}`);
-    return;
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  //Handle product data from event to save into order db
-  const getLineItems = async (lineIntems) => {
+  const getLineItems = async (lineItems) => {
     let productItems = [];
-    if (lineIntems?.data?.length) {
-      for (const item of lineIntems.data) {
-        const product = await stripe.products.retrieve(item.price.product);
-        const productId = product.metadata.productId;
+    if (lineItems?.data?.length) {
+      for (const item of lineItems.data) {
+        let productId = "";
+        let productName = item.description || "Garment Product";
+        let images = [];
+
+        try {
+          if (item.price?.product) {
+            const product = await stripe.products.retrieve(item.price.product);
+            productId = product.metadata?.productId || "";
+            productName = product.name || productName;
+            images = product.images || [];
+          }
+        } catch (e) {
+          // ignore Stripe product retrieval errors
+        }
+
         const productData = {
           productId: productId,
-          name: product.name,
-          price: item.price.unit_amount / 100,
+          name: productName,
+          price: (item.price?.unit_amount || 0) / 100,
           quantity: item.quantity,
-          image: product.images,
+          image: images.length > 0 ? images : ["/images/placeholders/placeholder-garment.svg"],
         };
         productItems.push(productData);
       }
@@ -44,58 +51,52 @@ const webHooks = async (req, res) => {
     return productItems;
   };
 
-  //Handle delete cart products
-  const deleteCartProduct = async(productId, userId) =>{
-   
-    const deleteProduct = await cartModel.findOneAndDelete({productId: productId, userId : userId})
-    if(deleteProduct){
-      console.log(`Product delete with Product Id : ${productId} and User Id : ${userId}`)
+  const deleteCartProduct = async (productId, userId) => {
+    try {
+      await cartModel.findOneAndDelete({ productId: productId, userId: userId });
+    } catch (e) {
+      console.error("Error clearing cart item:", e.message);
     }
-  }
+  };
 
-  // Handle the event
-  switch (event.type) {
+  switch (event?.type) {
     case "checkout.session.completed":
-      const session = event.data.object;
-      // console.log("Session : ",session)
-      // console.log("Session User Id",session.id)
-      const lineItems = await stripe.checkout.sessions.listLineItems(
-        session.id
-      );
-      // console.log("Line Items: ",lineItems)
-      // console.log("Total Amount : ", session.amount_total/100)
-      const productDetails = await getLineItems(lineItems);
-      // console.log("Product Details : ", productDetails)
-      const orderDetails = {
-        productDetails : productDetails,
-        email : session.customer_email,
-        userId : session.metadata.userId,
-        paymentDetails : {
-          paymentId : session.payment_intent,
-          payment_method_type : session.payment_method_types,
-          payment_status : session.payment_status,
-        },
-        shipping_options : session.shipping_options,
-        total_amount : session.amount_total/100
-      };
-      const order = new orderModel(orderDetails);
-      const saveOrder = await order.save();
+      try {
+        const session = event.data.object;
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+        const productDetails = await getLineItems(lineItems);
+        
+        const orderDetails = {
+          customerName: session.customer_details?.name || session.metadata?.customerName || "Customer",
+          productDetails: productDetails,
+          email: session.customer_email || session.customer_details?.email,
+          userId: session.metadata?.userId || "",
+          paymentDetails: {
+            paymentId: session.payment_intent,
+            payment_method_type: session.payment_method_types || ["card"],
+            payment_status: session.payment_status || "Paid",
+          },
+          shipping_options: session.shipping_options || [],
+          total_amount: (session.amount_total || 0) / 100,
+          approvalStatus: "Pending",
+          orderStatus: "Pending",
+        };
 
+        const order = new orderModel(orderDetails);
+        const saveOrder = await order.save();
 
-      if(saveOrder){
-        productDetails.map(async(product)=>{
-          await deleteCartProduct(product.productId, session.metadata.userId)
-        })
-        // const deletedCartProduct = await deleteCartProduct(productDetails, session.metadata.userId)
+        if (saveOrder && session.metadata?.userId) {
+          await cartModel.deleteMany({ userId: session.metadata.userId });
+        }
+      } catch (err) {
+        console.error("Webhook processing error:", err.message);
       }
-
       break;
-    // ... handle other event types
     default:
-      console.log(`Unhandled event type ${event.type}`);
+      console.log(`Unhandled webhook event type: ${event?.type}`);
   }
 
-  res.status(200).send();
+  res.status(200).json({ received: true });
 };
 
 module.exports = webHooks;

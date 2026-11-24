@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#edf2f7"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity="0.15"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="500" height="500" rx="24" fill="url(#bgGrad)"/>
+  <!-- Subtly stylish border and brand watermark -->
+  <rect x="12" y="12" width="476" height="476" rx="16" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,6" opacity="0.6"/>
+  <g filter="url(#shadow)">
+    
+    
+    <!-- Main Body & Sleeves -->
+    <g id="shirtBody">
+      <!-- Body contour -->
+      <path d="M 185 105 L 115 145 L 90 235 L 130 250 L 155 195 L 160 380 Q 250 405 340 380 L 345 195 L 370 250 L 410 235 L 385 145 L 315 105 Z" 
+            fill="#2563eb" stroke="#00000033" stroke-width="2"/>
+      <!-- Sleeve Cuffs -->
+      <path d="M 90 235 L 130 250 L 126 260 L 86 245 Z" fill="#1d4ed8" stroke="#00000033" stroke-width="1.5"/>
+      <path d="M 410 235 L 370 250 L 374 260 L 414 245 Z" fill="#1d4ed8" stroke="#00000033" stroke-width="1.5"/>
+      <!-- Inner Neck Arc -->
+      <path d="M 215 105 Q 250 120 285 105" fill="none" stroke="#00000044" stroke-width="2"/>
+    </g>
+    
+    <!-- Placket & Buttons -->
+    <rect x="242" y="115" width="16" height="275" fill="#1d4ed8" opacity="0.2"/>
+    <line x1="250" y1="115" x2="250" y2="390" stroke="#00000022" stroke-width="1.5"/>
+    <circle cx="250" cy="140" r="4" fill="#ffffff" stroke="#475569" stroke-width="1"/>
+    <circle cx="250" cy="180" r="4" fill="#ffffff" stroke="#475569" stroke-width="1"/>
+    <circle cx="250" cy="220" r="4" fill="#ffffff" stroke="#475569" stroke-width="1"/>
+    <circle cx="250" cy="260" r="4" fill="#ffffff" stroke="#475569" stroke-width="1"/>
+    <circle cx="250" cy="300" r="4" fill="#ffffff" stroke="#475569" stroke-width="1"/>
+    <circle cx="250" cy="340" r="4" fill="#ffffff" stroke="#475569" stroke-width="1"/>
+    <!-- Left Chest Pocket -->
+    <path d="M 180 180 L 220 180 L 220 225 L 200 235 L 180 225 Z" fill="#2563eb" stroke="#00000033" stroke-width="1.5"/>
+    <!-- Collar -->
+    <path d="M 215 110 L 250 145 L 285 110 L 265 95 L 235 95 Z" fill="#1d4ed8" stroke="#00000033" stroke-width="1.5"/>
+    <path d="M 215 110 L 250 135 L 235 95 Z" fill="#ffffff" opacity="0.2"/>
+    <path d="M 285 110 L 250 135 L 265 95 Z" fill="#000000" opacity="0.1"/>
+  
+  
+  </g>
+  <text x="250" y="472" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#94a3b8" text-anchor="middle" letter-spacing="2">DENIM BUTTON-DOWN SHIRT </text>
+</svg>

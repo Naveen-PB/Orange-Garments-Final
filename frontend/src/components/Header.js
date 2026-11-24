@@ -69,11 +69,19 @@ const Header = () => {
         {/* Logo Div Ends*/}
 
         {/* Navbar Links */}
-        <nav className="hidden md:flex space-x-8">
+        <nav className="hidden md:flex space-x-8 items-center">
         <h1 className=" -ml-32 font-bold text-xl text-red-600">ORANGE GARMENTS</h1>
-          <Link to="/" className="text-gray-700 hover:text-red-600">Home</Link>
-          <Link to="/about" className="text-gray-700 hover:text-red-600">About</Link>
-          <Link to="/contact" className="text-gray-700 hover:text-red-600">Contact</Link>
+          <Link to="/" className="text-gray-700 hover:text-red-600 font-medium">Home</Link>
+          <Link to="/about" className="text-gray-700 hover:text-red-600 font-medium">About</Link>
+          <Link to="/contact" className="text-gray-700 hover:text-red-600 font-medium">Contact</Link>
+          {user?.role === ROLE.ADMIN && (
+            <Link
+              to="/admin"
+              className="text-white bg-slate-900 hover:bg-slate-800 px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1 shadow-sm"
+            >
+              Admin Panel
+            </Link>
+          )}
         </nav>
         {/* Navbar Links Ends */}
 
@@ -117,8 +125,8 @@ const Header = () => {
                 <nav>
                   {user?.role === ROLE.ADMIN ? (
                     <Link
-                      to={"/admin-panel/all-products"}
-                      className="whitespace-nowrap hover:bg-slate-200 rounded p-2"
+                      to={"/admin"}
+                      className="whitespace-nowrap hover:bg-slate-200 rounded p-2 block font-semibold text-slate-800"
                       onClick={() => setMenuDisplay((prev) => !prev)}
                     >
                       Admin Panel

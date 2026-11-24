@@ -1,23 +1,28 @@
 const cartModel = require("../../model/Cart");
 
-const UpdatePlusCartQuantityController = async(req, res) =>{
-
+const UpdatePlusCartQuantityController = async (req, res) => {
   try {
+    const currentUser = req?.userId;
+    const cartItemId = req.body.productId || req.body._id;
+    const quantity = req.body.quantity;
 
-    const currentUser = req?.userId
-    const productId = req.body.productId //Id of the cart table 
-    const quantity = req.body.quantity
+    if (!cartItemId || !quantity || quantity < 1) {
+      return res.status(400).json({
+        message: "Valid cart item ID and quantity >= 1 required",
+        error: true,
+        success: false,
+      });
+    }
 
-    // console.log("ProductId : ", productId)
-    // console.log("Quantity : ", quantity)
-
-    const updateProductQuantity = await cartModel.updateOne({_id:productId}, {
-      ...(quantity && {quantity : quantity})
-    })
+    const updateProductQuantity = await cartModel.findOneAndUpdate(
+      { _id: cartItemId, userId: currentUser },
+      { $set: { quantity: Number(quantity) } },
+      { new: true }
+    );
 
     res.status(200).json({
-      data:updateProductQuantity,
-      message: "Qunatity Updated",
+      data: updateProductQuantity,
+      message: "Quantity Updated",
       error: false,
       success: true,
     });
@@ -29,7 +34,6 @@ const UpdatePlusCartQuantityController = async(req, res) =>{
       success: false,
     });
   }
+};
 
-}
-
-module.exports = UpdatePlusCartQuantityController
+module.exports = UpdatePlusCartQuantityController;

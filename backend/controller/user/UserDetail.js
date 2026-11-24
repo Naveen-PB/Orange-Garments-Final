@@ -1,23 +1,29 @@
-const userModel = require("../../model/userModel")
+const userModel = require("../../model/userModel");
 
-const userDetailController = async (req, res) =>{
+const userDetailController = async (req, res) => {
   try {
-    //  console.log("User Id:", req.userId)
-    const user = await userModel.findById(req.userId)
-    res.status(200).json({
-      data : user,
-      error : false,
-      success : true,
-      message : "User Details"
-    })
-    // console.log(user)
-  } catch (error) {
-    res.status(400).json({
-      message : error.message || error,
-      error : true,
-      success : false
-     })
-  }
-}
+    const user = await userModel.findById(req.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        error: true,
+        success: false
+      });
+    }
 
-module.exports = userDetailController
+    res.status(200).json({
+      data: user,
+      error: false,
+      success: true,
+      message: "User Details"
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
+
+module.exports = userDetailController;

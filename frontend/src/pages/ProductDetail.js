@@ -8,6 +8,7 @@ import useAddToCart from "../helpers/AddToCart";
 import AddToWishList from "../helpers/AddToWishlist";
 import { useSelector } from "react-redux";
 import context from "../context/Context";
+import { getProductImage, handleImageError } from "../helpers/productImageHelper";
 
 const ProductDetail = () => {
   const user = useSelector((state) => state?.user?.user);
@@ -33,16 +34,23 @@ const ProductDetail = () => {
 
   const fetchProductDetails = async () => {
     setLoading(true);
-    const data = await fetch(
-      `${SummaryApi.singleProductDetail.url}/${productId?.id}`,
-      {
-        method: SummaryApi.singleProductDetail.method,
-      }
-    );
-    setLoading(false);
-    const response = await data.json();
-    setProductData(response?.product);
-    setActiveImg(response?.product?.productImage[0]);
+    try {
+      const data = await fetch(
+        `${SummaryApi.singleProductDetail.url}/${productId?.id}`,
+        {
+          method: SummaryApi.singleProductDetail.method,
+        }
+      );
+      const response = await data.json();
+      const product = response?.product || response?.data || {};
+      setProductData(product);
+      const initialImg = getProductImage(product, 0);
+      setActiveImg(initialImg);
+    } catch (err) {
+      console.error("Error fetching product details:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -102,21 +110,23 @@ const ProductDetail = () => {
         <div className="min-h-[200px] flex flex-col lg:flex-row gap-4">
           {/** Product Image */}
           <div className="h-96 flex gap-4 flex-col lg:flex-row-reverse rounded">
-            <div className="h-[300px] w-[300px] lg:w-96 lg:h-96 bg-slate-200 relative">
+            <div className="h-[300px] w-[300px] lg:w-96 lg:h-96 bg-slate-200 relative flex items-center justify-center">
               <img
-                src={activeImg}
+                src={activeImg || getProductImage(productData, 0)}
+                onError={(e) => handleImageError(e, productData?.category)}
                 className="w-full h-full mix-blend-multiply object-scale-down rounded"
                 onMouseMove={handleMouseMove}
                 onMouseEnter={() => setShowZoom(true)}
                 onMouseLeave={() => setShowZoom(false)}
+                alt={productData?.productName || "Product"}
               />
 
               {/** Product Image Zoom Effect */}
               {showZoom && (
                 <div
-                  className="hidden lg:block absolute min-h-[500px] min-w-[500px] bg-slate-200 p-1 top-0 -right-[510px] overflow-hidden border border-gray-300 rounded"
+                  className="hidden lg:block absolute min-h-[500px] min-w-[500px] bg-slate-200 p-1 top-0 -right-[510px] overflow-hidden border border-gray-300 rounded z-20"
                   style={{
-                    backgroundImage: `url(${activeImg})`,
+                    backgroundImage: `url(${activeImg || getProductImage(productData, 0)})`,
                     backgroundSize: "200%",
                     backgroundRepeat: "no-repeat",
                     backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
@@ -136,16 +146,18 @@ const ProductDetail = () => {
                 </div>
               ) : (
                 <div className="flex justify-between gap-2 lg:flex-col overflow-scroll scrollbar-none h-full">
-                  {productData.productImage.map((imageUrl, index) => (
+                  {(productData.productImage && productData.productImage.length > 0 ? productData.productImage : [getProductImage(productData, 0)]).map((imageUrl, index) => (
                     <div
-                      className="h-20 w-20 rounded bg-slate-200 p-2"
+                      className="h-20 w-20 rounded bg-slate-200 p-2 flex items-center justify-center"
                       key={index}
                     >
                       <img
                         src={imageUrl}
-                        className="h-full w-full object-scale-down mix-blend-multiply cursor-pointer p-2"
+                        onError={(e) => handleImageError(e, productData?.category)}
+                        className="h-full w-full object-scale-down mix-blend-multiply cursor-pointer p-1"
                         onMouseEnter={() => handleImage(imageUrl)}
                         onClick={() => handleImage(imageUrl)}
+                        alt={productData?.productName}
                       />
                     </div>
                   ))}

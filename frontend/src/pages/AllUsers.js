@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import moment from "moment";
 import { Link } from "react-router-dom";
 import { FaEdit } from "react-icons/fa";
+import { FaCircleUser } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 import RoleChangeModal from "../components/ChangeUserRole";
 
@@ -48,6 +49,7 @@ const AllUsers = () => {
     // console.log(newRole)
     const response = await fetch(`${SummaryApi.updateRole.url}/${userId}`, {
       method: SummaryApi.updateRole.method,
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -124,11 +126,15 @@ const AllUsers = () => {
                 </td>
                 <td className="px-6 py-4">{el?.email}</td>
                 <td className="px-6 py-4">
-                  <img
-                    src={el?.profilepic}
-                    className="w-8 h-8 rounded-full"
-                    alt={el?.name}
-                  />
+                  {el?.profilepic ? (
+                    <img
+                      src={el?.profilepic}
+                      className="w-8 h-8 rounded-full object-cover"
+                      alt={el?.name}
+                    />
+                  ) : (
+                    <FaCircleUser className="w-8 h-8 text-slate-400" />
+                  )}
                 </td>
                 <td className="px-6 py-4">
                   {moment(el?.createdAt).format("ll")}

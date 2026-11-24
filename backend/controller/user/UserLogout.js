@@ -1,26 +1,27 @@
-const UserLogout = async (req, res) =>{
+const UserLogout = async (req, res) => {
   try {
+    const isProduction = process.env.NODE_ENV === 'production';
     const tokenOption = {
-      httpOnly : true,
-      secure : true,
-      sameSite : 'None'
-    }
-    res.clearCookie("token",tokenOption)
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'None' : 'Lax',
+    };
+    res.clearCookie("token", tokenOption);
 
-    res.json({
-      data : [],
-      message : "Logged out successfully..!",
-      error : false,
-      success : true
-    })
-    
+    res.status(200).json({
+      data: [],
+      message: "Logged out successfully!",
+      error: false,
+      success: true
+    });
+
   } catch (error) {
-    res.json({
-      message : error.message || error,
-      error : true,
-      success : false,
-    })
+    res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
   }
-}
+};
 
-module.exports = UserLogout
+module.exports = UserLogout;

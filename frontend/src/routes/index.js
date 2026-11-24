@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from "../App";
 import Home from "../pages/Home";
 import SignIn from "../pages/SignIn";
@@ -7,6 +7,10 @@ import SignUp from "../pages/SignUp";
 import AdminPanel from "../pages/AdminPanel";
 import AllUsers from "../pages/AllUsers";
 import Products from "../pages/Products";
+import AdminAddItems from "../pages/admin/AdminAddItems";
+import AdminOrders from "../pages/admin/AdminOrders";
+import AdminOrderStatus from "../pages/admin/AdminOrderStatus";
+import AdminRevenue from "../pages/admin/AdminRevenue";
 import CategoryProduct from "../pages/CategoryProduct";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
@@ -86,14 +90,75 @@ const router = createBrowserRouter([
         element: <AdminPanel />,
         children: [
           {
-            path: "all-users",
-            element: <AllUsers />,
+            index: true,
+            element: <Navigate to="add-items" replace />,
+          },
+          {
+            path: "add-items",
+            element: <AdminAddItems />,
           },
           {
             path: "all-products",
-            element: <Products />,
+            element: <AdminAddItems />,
           },
-          
+          {
+            path: "orders",
+            element: <AdminOrders />,
+          },
+          {
+            path: "my-orders",
+            element: <AdminOrders />,
+          },
+          {
+            path: "order-status",
+            element: <AdminOrderStatus />,
+          },
+          {
+            path: "revenue",
+            element: <AdminRevenue />,
+          },
+          {
+            path: "all-users",
+            element: <AllUsers />,
+          },
+        ],
+      },
+      {
+        path: "admin",
+        element: <AdminPanel />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="add-items" replace />,
+          },
+          {
+            path: "add-items",
+            element: <AdminAddItems />,
+          },
+          {
+            path: "all-products",
+            element: <AdminAddItems />,
+          },
+          {
+            path: "orders",
+            element: <AdminOrders />,
+          },
+          {
+            path: "my-orders",
+            element: <AdminOrders />,
+          },
+          {
+            path: "order-status",
+            element: <AdminOrderStatus />,
+          },
+          {
+            path: "revenue",
+            element: <AdminRevenue />,
+          },
+          {
+            path: "all-users",
+            element: <AllUsers />,
+          },
         ],
       },
       {

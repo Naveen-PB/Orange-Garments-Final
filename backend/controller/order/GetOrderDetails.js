@@ -1,28 +1,33 @@
 const orderModel = require("../../model/OrderProductModel");
 
-const GetOderDetails = async(req, res)=>{
+const GetOderDetails = async (req, res) => {
   try {
+    const userId = req?.userId;
 
-    const userId = req?.userId
-    // console.log("UserId : ", userId)
-    const orderData = await orderModel.find({userId : userId}).sort({createdAt : -1})
+    if (!userId) {
+      return res.status(401).json({
+        message: "Please login to view orders",
+        error: true,
+        success: false,
+      });
+    }
 
-    // console.log("Ordered Data : ",orderData)
+    const orderData = await orderModel.find({ userId: String(userId) }).sort({ createdAt: -1 });
 
     res.status(200).json({
-      data : orderData,
+      data: orderData,
       message: "Ordered Product Details",
       error: false,
       success: true,
     });
     
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       message: error.message || error,
       error: true,
       success: false,
     });
   }
-}
+};
 
-module.exports = GetOderDetails
+module.exports = GetOderDetails;

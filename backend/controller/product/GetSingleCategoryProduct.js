@@ -1,36 +1,30 @@
-const productModel = require("../../model/productModel")
+const productModel = require("../../model/productModel");
 
-const GetCategoryProductController = async(req, res) =>{
-
+const GetCategoryProductController = async (req, res) => {
   try {
-    // res.send("Get Category By Product")
-    const categoryProduct = await productModel.distinct("category")
-    // res.send(categoryProduct)
-    //Array to store one product from each category
-    const productCategory = []
+    const categories = await productModel.distinct("category");
+    const productCategory = [];
 
-    for(const category of categoryProduct){
-      const product = await productModel.findOne({ category: category })
-      if(product){
-        productCategory.push(product)
+    for (const category of categories) {
+      const product = await productModel.findOne({ category });
+      if (product) {
+        productCategory.push(product);
       }
     }
 
     res.status(200).json({
-      data : productCategory,
-      message : "Product Category",
-      error : false,
+      data: productCategory,
+      message: "Product Category List",
+      error: false,
       success: true,
-    })
-
+    });
   } catch (error) {
-    res.status(400).json({
-      message : error.message || error,
-      error : true,
-      success : false
-     })
+    res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
   }
+};
 
-}
-
-module.exports = GetCategoryProductController
+module.exports = GetCategoryProductController;

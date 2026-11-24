@@ -1,6 +1,6 @@
 
 
-const backendDomain = process.env.REACT_APP_BACKEND_DOMAIN 
+const backendDomain = (process.env.REACT_APP_BACKEND_DOMAIN || "http://localhost:8080").replace(/"/g, "").trim(); 
 
 const SummaryApi = {
   signUp : {
@@ -119,6 +119,30 @@ const SummaryApi = {
   getOrderData : {
     url : `${backendDomain}/api/get-order-details`,
     method : "get"
+  },
+  deleteProduct: {
+    url: `${backendDomain}/api/delete-product`,
+    method: "delete"
+  },
+  adminOrders: {
+    url: `${backendDomain}/api/admin/orders`,
+    method: "get"
+  },
+  adminAcceptedOrders: {
+    url: `${backendDomain}/api/admin/orders/accepted`,
+    method: "get"
+  },
+  adminUpdateApproval: {
+    url: `${backendDomain}/api/admin/orders`,
+    method: "put"
+  },
+  adminUpdateStatus: {
+    url: `${backendDomain}/api/admin/orders`,
+    method: "put"
+  },
+  adminRevenue: {
+    url: `${backendDomain}/api/admin/revenue`,
+    method: "get"
   }
 }
 

@@ -11,6 +11,7 @@ import SummaryApi from "../common/API";
 import AddToWishList from "../helpers/AddToWishlist";
 import DeleteToWishList from "../helpers/DeleteWishListProduct";
 import context from "../context/Context";
+import { getProductImage, handleImageError } from "../helpers/productImageHelper";
 
 const VerticalProductCard = ({ category, heading }) => {
   const user = useSelector((state) => state?.user?.user);
@@ -40,7 +41,7 @@ const VerticalProductCard = ({ category, heading }) => {
     setLoading(true);
     try {
       const result = await fetchCategoryWiseProduct(category);
-      setData(result.product); // Ensure result.product is the correct path
+      setData(result.product || result.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
       setData([]);
@@ -154,8 +155,9 @@ const VerticalProductCard = ({ category, heading }) => {
                     )}
                   </button>
                   <img
-                    src={product.productImage[0]}
-                    className="object-scale-down h-full hover:scale-110 transition-all mix-blend-multiply"
+                    src={getProductImage(product, 0)}
+                    onError={(e) => handleImageError(e, product?.category)}
+                    className="object-scale-down h-full w-full hover:scale-110 transition-all mix-blend-multiply"
                     alt={product.productName}
                   />
                 </div>

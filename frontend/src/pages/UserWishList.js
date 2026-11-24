@@ -8,6 +8,7 @@ import { MdDelete } from "react-icons/md";
 import Context from "../context/Context";
 import displayINRCurrency from "../helpers/displayCurrency";
 import Button from "../components/ui/Button"; // Ensure the path and casing are correct
+import { getProductImage, handleImageError } from "../helpers/productImageHelper";
 
 const UserWishList = () => {
   const user = useSelector((state) => state?.user?.user);
@@ -15,7 +16,7 @@ const UserWishList = () => {
   const [loading, setLoading] = useState(false);
   const context = useContext(Context);
   const { fetchAddToWishListCount } = useContext(Context);
-  const wishlistLoadingList = new Array(context.etchAddToWishListCount).fill(null);
+  const wishlistLoadingList = new Array(4).fill(null);
 
   const fetchWishlistData = async () => {
     setLoading(true);
@@ -127,12 +128,15 @@ const UserWishList = () => {
               >
                 {/* Product Image */}
                 <Link to={`/product/${product?.productId?._id}`} className="flex-grow">
-                  <img
-                    src={product?.productId?.productImage[0]}
-                    alt={product?.productId?.productName}
-                    className="aspect-square object-cover w-full rounded-lg overflow-hidden"
-                    loading="lazy"
-                  />
+                  <div className="aspect-square w-full rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center p-2">
+                    <img
+                      src={getProductImage(product?.productId, 0)}
+                      onError={(e) => handleImageError(e, product?.productId?.category)}
+                      alt={product?.productId?.productName}
+                      className="w-full h-full object-contain mix-blend-multiply"
+                      loading="lazy"
+                    />
+                  </div>
                   {/* Product Details */}
                   <h2 className="text-lg font-bold mt-2 text-gray-800 dark:text-gray-700 line-clamp-1">
                     {product?.productId?.productName}

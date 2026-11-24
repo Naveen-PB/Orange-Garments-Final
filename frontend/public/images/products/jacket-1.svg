@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#edf2f7"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity="0.15"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="500" height="500" rx="24" fill="url(#bgGrad)"/>
+  <!-- Subtly stylish border and brand watermark -->
+  <rect x="12" y="12" width="476" height="476" rx="16" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,6" opacity="0.6"/>
+  <g filter="url(#shadow)">
+    
+    <!-- Jacket Body -->
+    <path d="M 185 105 L 90 160 L 65 325 L 105 338 L 138 230 L 140 375 Q 250 395 360 375 L 362 230 L 395 338 L 435 325 L 410 160 L 315 105 Z" 
+          fill="#1d4ed8" stroke="#00000044" stroke-width="2.5"/>
+    
+    <!-- Center Zip -->
+    <line x1="250" y1="110" x2="250" y2="385" stroke="#94a3b8" stroke-width="3"/>
+    <!-- Pockets -->
+    <path d="M 175 280 L 220 280 L 220 330 L 175 330 Z" fill="#1e40af" opacity="0.3" stroke="#00000044" stroke-width="1.5"/>
+    <path d="M 280 280 L 325 280 L 325 330 L 280 330 Z" fill="#1e40af" opacity="0.3" stroke="#00000044" stroke-width="1.5"/>
+    <!-- Slanted Chest Pocket -->
+    <line x1="180" y1="180" x2="215" y2="195" stroke="#00000044" stroke-width="2"/>
+    <!-- Collar / Lapels -->
+    <path d="M 205 105 L 250 145 L 225 180 L 195 125 Z" fill="#1e40af" stroke="#00000033" stroke-width="1.5"/>
+    <path d="M 295 105 L 250 145 L 275 180 L 305 125 Z" fill="#1e40af" stroke="#00000033" stroke-width="1.5"/>
+  
+  
+  </g>
+  <text x="250" y="472" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#94a3b8" text-anchor="middle" letter-spacing="2">DENIM JACKET </text>
+</svg>

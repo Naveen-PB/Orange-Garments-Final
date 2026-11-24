@@ -1,19 +1,25 @@
-const cartModel = require("../../model/Cart");
 const wishListModel = require("../../model/WishList");
 
-const DeleteWishlistProductController = async(req, res) =>{
+const DeleteWishlistProductController = async (req, res) => {
   try {
+    const currentUser = req?.userId;
+    const wishlistId = req?.body?.wishlistId || req?.body?._id;
 
-    const currentUser = req?.userId
-    const wishlistId = req?.body?.wishlistId
+    if (!wishlistId) {
+      return res.status(400).json({
+        message: "Wishlist item ID is required",
+        error: true,
+        success: false,
+      });
+    }
 
-    console.log(wishlistId)
+    const deletedProduct = await wishListModel.findOneAndDelete({
+      _id: wishlistId,
+      userId: currentUser
+    });
 
-    const deletedProduct = await wishListModel.findByIdAndDelete({_id:wishlistId})
-
-    // console.log(deletedProduct)
     res.status(200).json({
-      data : deletedProduct,
+      data: deletedProduct,
       message: "Removed from wishlist",
       error: false,
       success: true,
@@ -25,6 +31,6 @@ const DeleteWishlistProductController = async(req, res) =>{
       success: false,
     });
   }
-}
+};
 
-module.exports = DeleteWishlistProductController
+module.exports = DeleteWishlistProductController;

@@ -2,10 +2,10 @@ import React from "react";
 import displayINRCurrency from "../helpers/displayCurrency";
 import useAddToCart from "../helpers/AddToCart";
 import { Link } from "react-router-dom";
-import { FaHeart } from "react-icons/fa";
+import { getProductImage, handleImageError } from "../helpers/productImageHelper";
 
 const SearchProductCard = ({ loading, data = [] }) => {
-  const loadingList = new Array(13).fill(null);
+  const loadingList = new Array(8).fill(null);
   const addToCart = useAddToCart();
 
   return (
@@ -27,15 +27,16 @@ const SearchProductCard = ({ loading, data = [] }) => {
           ))
         : data.map((product, index) => (
             <Link
-              key={index}
-              to={`/product/${product._id}`}
-              className="w-full bg-white rounded-sm shadow "
+              key={product?._id || index}
+              to={`/product/${product?._id}`}
+              className="w-full bg-white rounded-sm shadow block"
             >
               <div className="bg-slate-200 flex justify-center items-center p-4 h-48">
                 <img
-                  src={product.productImage[0]}
-                  alt={product.productName}
-                  className="object-scale-down h-full hover:scale-110 transition-all mix-blend-multiply"
+                  src={getProductImage(product, 0)}
+                  onError={(e) => handleImageError(e, product?.category)}
+                  alt={product?.productName}
+                  className="object-scale-down h-full w-full hover:scale-110 transition-all mix-blend-multiply"
                 />
               </div>
               <div className="p-4 gap-2 flex flex-col justify-between">
